@@ -1,6 +1,6 @@
 ﻿namespace NeuralNetwork_Test
 {
-    partial class Form1
+    partial class NetworkDesigner
     {
         /// <summary>
         /// Required designer variable.

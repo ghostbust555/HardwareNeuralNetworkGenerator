@@ -1,6 +1,6 @@
 ﻿namespace NeuralNetwork_Test
 {
-    partial class inputLayerSizeForm
+    partial class InputLayerSizeForm
     {
         /// <summary>
         /// Required designer variable.

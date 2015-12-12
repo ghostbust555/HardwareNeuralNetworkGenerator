@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.IO;
 using NeuralNetwork_Test.Neural_Networks;
+using System.Collections;
 
 namespace NeuralNetwork_Test
 {
@@ -17,7 +18,7 @@ namespace NeuralNetwork_Test
         static void Main()
         {
             //VHDL();
-            var f = new Form1();
+            var f = new NetworkDesigner();
             Application.Run(f);            
         }
 
@@ -25,7 +26,7 @@ namespace NeuralNetwork_Test
         const string OUT = "OUT";
         const string IN = "IN";
         const string SIGNAL = "SIGNAL";
-        const string SIG_VECTOR = ":  STD_LOGIC_VECTOR(31 DOWNTO 0);";
+        const string SIG_VECTOR = ":  STD_LOGIC_VECTOR(31 DOWNTO 0)";
 
         public static void VHDL(NeuralNetwork nn)
         {
@@ -53,13 +54,6 @@ ENTITY NeuralNetwork IS
                 var outputLayer = layerIdx == nn.Layers.Count-1;
                 for (int neuronIdx = 0; neuronIdx < layer.Count; neuronIdx++)
                 {
-                    if (!inputLayer) { 
-                        for (int inputIdx = 0; inputIdx < layer[neuronIdx].N; inputIdx++)
-                        {
-                            entityBody += String.Format("W_L{0}_N{1}_{2} : {3} {4};\n", layerIdx, neuronIdx, inputIdx, IN, STD_VECTOR);
-                        }
-                    }
-
                     if (inputLayer) {
                         entityBody += String.Format("I_{0} : {1} {2};\n", neuronIdx, IN, STD_VECTOR);                        
                     }
@@ -74,7 +68,7 @@ ENTITY NeuralNetwork IS
                     else
                     {                        
                         string signalName = String.Format("L{0}_N{1}_OUT", layerIdx, neuronIdx);
-                        signals += String.Format("{0} {1} {2}", SIGNAL, signalName, SIG_VECTOR);                        
+                        signals += String.Format("{0} {1} {2};\n", SIGNAL, signalName, SIG_VECTOR);                        
                     }
                 }
             }
@@ -100,11 +94,68 @@ COMPONENT \3Neuron\
 		 output : OUT STD_LOGIC_VECTOR(31 DOWNTO 0)
 	);
 END COMPONENT;
+
 ";
 
-            string output = header + entityStart + entityBody + entityStop;
+            string architectureBody = "BEGIN \n";
+
+            for (int layerIdx = 1; layerIdx < nn.Layers.Count; layerIdx++)
+            {
+                var layer = nn.Layers[layerIdx];
+                var fromInputLayer = layerIdx == 1;
+                var outputLayer = layerIdx == nn.Layers.Count - 1;
+                for (int neuronIdx = 0; neuronIdx < layer.Count; neuronIdx++)
+                {
+                    string neuronStartString = String.Format(
+@"
+neuron_inst{0}_{1} : \3Neuron\
+PORT MAP(
+CLK => Clk,
+", layerIdx, neuronIdx);
+                    neuronStartString += "Input1 => \"00111111100000000000000000000000\",\n";
+                    var outputString = String.Format("Output => L{0}_N{1}_OUT", layerIdx, neuronIdx);
+                    
+                    if (fromInputLayer)
+                    {
+                        for (int inputIdx = 1; inputIdx < layer[neuronIdx].N; inputIdx++)
+                        {
+                            neuronStartString += String.Format("Input{0} => I_{1},\n", inputIdx + 1, inputIdx - 1);
+                        }                        
+                    }
+                    else 
+                    {
+                        if (outputLayer) outputString = String.Format("Output => O_N{1}", layerIdx, neuronIdx);
+                        for (int inputIdx = 1; inputIdx < layer[neuronIdx].N; inputIdx++)
+                        {
+                            neuronStartString += String.Format("Input{0} => L{1}_N{2}_OUT,\n", inputIdx+1, layerIdx - 1, inputIdx-1);
+                        }
+                    }
+
+                    for (int inputIdx = 0; inputIdx < layer[neuronIdx].N; inputIdx++)
+                    {
+                        neuronStartString += String.Format("Weight{0} => \"{1}\",\n", inputIdx + 1, GetFloatString(layer[neuronIdx].Weights[inputIdx]));
+                    }
+
+                    architectureBody += neuronStartString + outputString + ");\n\n";
+                }
+            }
+
+
+            string output = header + entityStart + entityBody + entityStop + architectureStart + signals + architectureBody + "END bdf_type;";
 
             File.WriteAllText(@"C:\Users\Kyle\Documents\CompIntell\test.vhdl", output);
+        }
+
+        public static string GetFloatString(float f)
+        {
+            var b = new BitArray(BitConverter.GetBytes(f));
+            var r = "";
+            foreach(bool bit in b)
+            {
+                r += (bit?"1":"0");                
+            }
+
+            return r;
         }
 
         //static void NN()

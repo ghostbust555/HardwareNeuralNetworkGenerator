@@ -10,11 +10,11 @@ using System.Windows.Forms;
 
 namespace NeuralNetwork_Test
 {
-    public partial class inputLayerSizeForm : Form
+    public partial class InputLayerSizeForm : Form
     {
         public int VectorCount = 10;
 
-        public inputLayerSizeForm()
+        public InputLayerSizeForm()
         {
             InitializeComponent();
             this.AcceptButton = okButton;

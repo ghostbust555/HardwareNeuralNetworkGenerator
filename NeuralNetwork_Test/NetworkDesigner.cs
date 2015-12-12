@@ -11,7 +11,7 @@ using System.Windows.Forms;
 
 namespace NeuralNetwork_Test
 {
-    public partial class Form1 : Form
+    public partial class NetworkDesigner : Form
     {
         
         private bool PlacingNeuron = false;
@@ -20,7 +20,7 @@ namespace NeuralNetwork_Test
         int gridsize = 40;
         private int MaxVectorsInLayer = 10;        
 
-        public Form1()
+        public NetworkDesigner()
         {
             InitializeComponent();
         }
@@ -90,7 +90,7 @@ namespace NeuralNetwork_Test
 
         private void newLayer_Click(object sender, EventArgs e)
         {
-            var f = new inputLayerSizeForm();
+            var f = new InputLayerSizeForm();
             var result = f.ShowDialog();
             if (result == DialogResult.OK)
             {
