@@ -46,6 +46,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="VectorOutputForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="VectorOutputForm.Designer.cs">
+      <DependentUpon>VectorOutputForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="NetworkDesigner.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -71,6 +77,9 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="VectorOutputForm.resx">
+      <DependentUpon>VectorOutputForm.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="NetworkDesigner.resx">
       <DependentUpon>NetworkDesigner.cs</DependentUpon>
     </EmbeddedResource>

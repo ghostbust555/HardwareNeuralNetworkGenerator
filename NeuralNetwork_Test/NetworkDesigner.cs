@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -13,7 +14,9 @@ namespace NeuralNetwork_Test
 {
     public partial class NetworkDesigner : Form
     {
-        
+        NeuralNetwork NN = new NeuralNetwork();
+        int Cutoff = 0;
+        List<List<float>> trainingData = new List<List<float>>();
         private bool PlacingNeuron = false;
         public List<List<Point>> Layers = new List<List<Point>>();
         int size = 30;
@@ -107,55 +110,125 @@ namespace NeuralNetwork_Test
 
         private void train_Click(object sender, EventArgs e)
         {
-            var nn = new NeuralNetwork();
-            var r = new Random();
-
-            int visualLayerIndex = 0;
-            foreach (var visualLayer in Layers)
+            string path = "";
+            OpenFileDialog fd = new OpenFileDialog();
+            fd.ValidateNames = true;
+            fd.DefaultExt = ".csv";
+            fd.Filter = "training data|*.csv";
+            if (fd.ShowDialog() == DialogResult.OK)
             {
-                var thisLayer = new List<Neuron>();
+                path = fd.FileName;
 
-                foreach (var visualNeuron in visualLayer)
+                trainingData = new List<List<float>>(); 
+
+                System.IO.StreamReader file = new System.IO.StreamReader(path);
+                string line = "";
+                
+                while ((line = file.ReadLine()) != null)
                 {
-                    if (visualLayerIndex == 0)
+                    var rowstring = line.Split(',');
+                    var row = new List<float>();
+                    foreach(var number in rowstring)
                     {
-                        thisLayer.Add(new InputNeuron());
+                        row.Add(float.Parse(number));
                     }
-                    else if(visualLayerIndex == Layers.Count - 1)
-                    {
-                        var last = nn.Layers[visualLayerIndex-1];
-                        thisLayer.Add(new OutputNeuron(r, ref last));
-                        foreach (Neuron n in last)
-                        {
-                            n.Children = thisLayer;
-                        }
-                    }
-                    else
-                    {
-                        var last = nn.Layers[visualLayerIndex - 1];
-                        thisLayer.Add(new HiddenNeuron(r, ref last));
-                        foreach (Neuron n in last)
-                        {
-                            n.Children = thisLayer;
-                        }
-                    }
+
+                    trainingData.Add(row);
                 }
 
-                nn.AddLayer(thisLayer);
-                visualLayerIndex++;
+                file.Close();
+
+                NN = new NeuralNetwork();
+                var r = new Random();
+
+                int visualLayerIndex = 0;
+                foreach (var visualLayer in Layers)
+                {
+                    var thisLayer = new List<Neuron>();
+
+                    foreach (var visualNeuron in visualLayer)
+                    {
+                        if (visualLayerIndex == 0)
+                        {
+                            thisLayer.Add(new InputNeuron());
+                        }
+                        else if (visualLayerIndex == Layers.Count - 1)
+                        {
+                            var last = NN.Layers[visualLayerIndex - 1];
+                            thisLayer.Add(new OutputNeuron(r, ref last));
+                            foreach (Neuron n in last)
+                            {
+                                n.Children = thisLayer;
+                            }
+                        }
+                        else
+                        {
+                            var last = NN.Layers[visualLayerIndex - 1];
+                            thisLayer.Add(new HiddenNeuron(r, ref last));
+                            foreach (Neuron n in last)
+                            {
+                                n.Children = thisLayer;
+                            }
+                        }
+                    }
+
+                    NN.AddLayer(thisLayer);
+                    visualLayerIndex++;
+                }
+
+                Cutoff = NN.Layers[0].Count;
+
+                for (var i = 0; i < 50000; i++)
+                {
+                    foreach (var row in trainingData)
+                    {
+                        var thisTrainingSetIn = new List<float>();
+                        var thisTrainingSetOut = new List<float>();
+                        int count = 0;
+                        foreach (var entry in row) {
+                            if(count < Cutoff)
+                            {
+                                thisTrainingSetIn.Add(entry);
+                            }
+                            else
+                            {
+                                thisTrainingSetOut.Add(entry);
+                            }
+
+                            count++;
+                        }
+                        NN.Train(thisTrainingSetIn.ToArray(), thisTrainingSetOut.ToArray());
+                    }                    
+                }
+
+                Program.VHDL(NN);
+
+                //new OutputForm(nn, 1, 1, true).Show();
             }
-            
-            for (var i = 0; i < 50000; i++)
+        }
+
+        private void testButton_Click(object sender, EventArgs e)
+        {
+            var o = new List<float[]>();
+            foreach (var row in trainingData)
             {
-                nn.Train(new float[2] { 0, 0 }, new float[1] { 0 });
-                nn.Train(new float[2] { 0, 1 }, new float[1] { 1 });
-                nn.Train(new float[2] { 1, 0 }, new float[1] { 1 });
-                nn.Train(new float[2] { 1, 1 }, new float[1] { 0 });
+                var thisTrainingSetIn = new List<float>();
+                int count = 0;
+                foreach (var entry in row)
+                {
+                    if (count < Cutoff)
+                    {
+                        thisTrainingSetIn.Add(entry);
+                    }
+
+                    count++;
+                }
+
+                o.Add(NN.Fire(thisTrainingSetIn.ToArray()));
             }
 
-            Program.VHDL(nn);
-
-            new OutputForm(nn,1,1,true).Show();
+            var vf = new VectorOutputForm(o);
+            vf.ShowDialog();
         }
     }
 }

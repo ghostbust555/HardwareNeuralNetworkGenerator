@@ -30,6 +30,7 @@
         {
             this.newLayer = new System.Windows.Forms.Button();
             this.trainButton = new System.Windows.Forms.Button();
+            this.testButton = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // newLayer
@@ -52,16 +53,27 @@
             this.trainButton.UseVisualStyleBackColor = true;
             this.trainButton.Click += new System.EventHandler(this.train_Click);
             // 
-            // Form1
+            // testButton
+            // 
+            this.testButton.Location = new System.Drawing.Point(263, 13);
+            this.testButton.Name = "testButton";
+            this.testButton.Size = new System.Drawing.Size(112, 43);
+            this.testButton.TabIndex = 3;
+            this.testButton.Text = "Test";
+            this.testButton.UseVisualStyleBackColor = true;
+            this.testButton.Click += new System.EventHandler(this.testButton_Click);
+            // 
+            // NetworkDesigner
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1102, 909);
+            this.Controls.Add(this.testButton);
             this.Controls.Add(this.trainButton);
             this.Controls.Add(this.newLayer);
             this.DoubleBuffered = true;
             this.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
-            this.Name = "Form1";
+            this.Name = "NetworkDesigner";
             this.Text = "Form1";
             this.MouseClick += new System.Windows.Forms.MouseEventHandler(this.Form1_MouseClick);
             this.MouseMove += new System.Windows.Forms.MouseEventHandler(this.Form1_MouseMove);
@@ -72,6 +84,7 @@
         #endregion
         private System.Windows.Forms.Button newLayer;
         private System.Windows.Forms.Button trainButton;
+        private System.Windows.Forms.Button testButton;
     }
 }
 
